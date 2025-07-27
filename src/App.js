@@ -1,117 +1,106 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import HomePage from './HomePage';
+import Login from './Login';
+import Register from './Register';
+import Dashboard from './Dashboard';
 
 function App() {
-  const [users, setUsers] = useState([]);
-  const [newUser, setNewUser] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'login', 'register'
+  const [loading, setLoading] = useState(true);
 
-  const API_URL = 'https://trae-backend.onrender.com';
-
-  // Kullanıcıları getir
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/users`);
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error('Kullanıcılar getirilemedi:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Yeni kullanıcı ekle
-  const addUser = async (e) => {
-    e.preventDefault();
-    if (!newUser.email || !newUser.password) {
-      alert('Email ve şifre gerekli!');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newUser),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUsers([...users, data]);
-        setNewUser({ email: '', password: '' });
-        alert('Kullanıcı başarıyla eklendi!');
-      } else {
-        alert('Kullanıcı eklenemedi!');
-      }
-    } catch (error) {
-      console.error('Kullanıcı eklenemedi:', error);
-      alert('Hata oluştu!');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Sayfa yüklendiğinde kullanıcıları getir
+  // Sayfa yüklendiğinde localStorage'dan token kontrol et
   useEffect(() => {
-    fetchUsers();
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (savedToken && savedUser) {
+      try {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+    setLoading(false);
   }, []);
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>🚀 Trae Backend - Kullanıcı Yönetimi</h1>
-        
-        {/* Yeni Kullanıcı Ekleme Formu */}
-        <div className="user-form">
-          <h2>Yeni Kullanıcı Ekle</h2>
-          <form onSubmit={addUser}>
-            <input
-              type="email"
-              placeholder="Email"
-              value={newUser.email}
-              onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-              disabled={loading}
-            />
-            <input
-              type="password"
-              placeholder="Şifre"
-              value={newUser.password}
-              onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-              disabled={loading}
-            />
-            <button type="submit" disabled={loading}>
-              {loading ? 'Ekleniyor...' : 'Kullanıcı Ekle'}
-            </button>
-          </form>
-        </div>
+  // Giriş başarılı
+  const handleLogin = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
+    setCurrentPage('dashboard');
+  };
 
-        {/* Kullanıcı Listesi */}
-        <div className="user-list">
-          <h2>Kullanıcılar ({users.length})</h2>
-          <button onClick={fetchUsers} disabled={loading}>
-            {loading ? 'Yükleniyor...' : 'Yenile'}
-          </button>
-          
-          {loading ? (
-            <p>Yükleniyor...</p>
-          ) : (
-            <div className="users">
-              {users.map((user) => (
-                <div key={user.id} className="user-card">
-                  <p><strong>Email:</strong> {user.email}</p>
-                  <p><strong>ID:</strong> {user.id}</p>
-                  <p><strong>Tarih:</strong> {new Date(user.createdAt).toLocaleString('tr-TR')}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </header>
+  // Kayıt başarılı
+  const handleRegister = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
+    setCurrentPage('dashboard');
+  };
+
+  // Çıkış yap
+  const handleLogout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setCurrentPage('home');
+  };
+
+  // Sayfa geçişleri
+  const showLogin = () => setCurrentPage('login');
+  const showRegister = () => setCurrentPage('register');
+  const showHome = () => setCurrentPage('home');
+  const switchToRegister = () => setCurrentPage('register');
+  const switchToLogin = () => setCurrentPage('login');
+
+  if (loading) {
+    return (
+      <div className="app">
+        <div className="loading">Yükleniyor...</div>
+      </div>
+    );
+  }
+
+  // Kullanıcı giriş yapmışsa Dashboard göster
+  if (user && token && currentPage === 'dashboard') {
+    return (
+      <Dashboard 
+        user={user} 
+        token={token} 
+        onLogout={handleLogout} 
+      />
+    );
+  }
+
+  // Sayfa durumuna göre render
+  return (
+    <div className="app">
+      {currentPage === 'home' && (
+        <HomePage 
+          onShowLogin={showLogin}
+          onShowRegister={showRegister}
+        />
+      )}
+      
+      {currentPage === 'login' && (
+        <Login 
+          onLogin={handleLogin} 
+          switchToRegister={switchToRegister} 
+        />
+      )}
+      
+      {currentPage === 'register' && (
+        <Register 
+          onRegister={handleRegister} 
+          switchToLogin={switchToLogin} 
+        />
+      )}
     </div>
   );
 }
