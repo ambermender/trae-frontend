@@ -14,7 +14,13 @@ const Room = ({ roomId, user, onLeave }) => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [peers, setPeers] = useState({});
   const [stream, setStream] = useState(null);
+  const [screenStream, setScreenStream] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [showFriendModal, setShowFriendModal] = useState(false);
+  const [friendEmail, setFriendEmail] = useState('');
+  const [friends, setFriends] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
   const videoRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -203,6 +209,77 @@ const Room = ({ roomId, user, onLeave }) => {
     }
   };
 
+  const startScreenShare = async () => {
+    try {
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true
+      });
+      
+      setScreenStream(displayStream);
+      setIsScreenSharing(true);
+      
+      // Ekran paylaşımını diğer kullanıcılara gönder
+      Object.values(peersRef.current).forEach(peer => {
+        displayStream.getTracks().forEach(track => {
+          peer.replaceTrack(
+            peer.streams[0].getVideoTracks()[0],
+            track,
+            peer.streams[0]
+          );
+        });
+      });
+      
+      // Ekran paylaşımı bittiğinde
+      displayStream.getVideoTracks()[0].onended = () => {
+        stopScreenShare();
+      };
+      
+    } catch (err) {
+      console.error('Ekran paylaşımı başlatılamadı:', err);
+      alert('Ekran paylaşımı için izin gerekli!');
+    }
+  };
+
+  const stopScreenShare = () => {
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+      setIsScreenSharing(false);
+      
+      // Kameraya geri dön
+      if (stream) {
+        Object.values(peersRef.current).forEach(peer => {
+          stream.getVideoTracks().forEach(track => {
+            peer.replaceTrack(
+              peer.streams[0].getVideoTracks()[0],
+              track,
+              peer.streams[0]
+            );
+          });
+        });
+      }
+    }
+  };
+
+  const addFriend = () => {
+    if (friendEmail.trim() && socket) {
+      socket.emit('add-friend', {
+        friendEmail: friendEmail.trim(),
+        roomId
+      });
+      setFriendEmail('');
+      setShowFriendModal(false);
+    }
+  };
+
+  const insertEmoji = (emoji) => {
+    setNewMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const emojis = ['😀', '😂', '😍', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉'];
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -237,6 +314,15 @@ const Room = ({ roomId, user, onLeave }) => {
           <button onClick={toggleMute} className={`voice-btn ${isMuted ? 'muted' : 'unmuted'}`}>
             {isMuted ? '🔇' : '🎤'}
           </button>
+          <button 
+            onClick={isScreenSharing ? stopScreenShare : startScreenShare} 
+            className={`screen-share-btn ${isScreenSharing ? 'sharing' : ''}`}
+          >
+            {isScreenSharing ? '🛑 Paylaşımı Durdur' : '🖥️ Ekran Paylaş'}
+          </button>
+          <button onClick={() => setShowFriendModal(true)} className="friend-btn">
+            👥 Arkadaş Ekle
+          </button>
           <button onClick={onLeave} className="leave-btn">
             Ayrıl
           </button>
@@ -258,17 +344,53 @@ const Room = ({ roomId, user, onLeave }) => {
             </button>
           </div>
           
-          <div className="video-player">
-            <video
-              ref={videoRef}
-              controls
-              onPlay={handleVideoPlay}
-              onPause={handleVideoPause}
-              onSeeked={handleVideoSeek}
-              className="main-video"
-            >
-              Video desteklenmiyor.
-            </video>
+          <div className="video-display-area">
+            {isScreenSharing ? (
+              <div className="screen-share-display">
+                <video
+                  ref={userVideoRef}
+                  autoPlay
+                  muted
+                  className="screen-share-video"
+                />
+                <div className="screen-share-indicator">
+                  🖥️ Ekran Paylaşılıyor
+                </div>
+              </div>
+            ) : (
+              <div className="video-player">
+                <video
+                  ref={videoRef}
+                  controls
+                  onPlay={handleVideoPlay}
+                  onPause={handleVideoPause}
+                  onSeeked={handleVideoSeek}
+                  className="main-video"
+                >
+                  Video desteklenmiyor.
+                </video>
+              </div>
+            )}
+            
+            {/* Diğer kullanıcıların video stream'leri */}
+            <div className="peer-videos">
+              {Object.entries(peers).map(([userId, peer]) => (
+                <div key={userId} className="peer-video-container">
+                  <video
+                    autoPlay
+                    className="peer-video"
+                    ref={el => {
+                      if (el && peer.streams && peer.streams[0]) {
+                        el.srcObject = peer.streams[0];
+                      }
+                    }}
+                  />
+                  <div className="peer-video-label">
+                    {roomUsers.find(u => u.userId === userId)?.email || 'Kullanıcı'}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -306,6 +428,25 @@ const Room = ({ roomId, user, onLeave }) => {
             </div>
             
             <div className="message-input-container">
+              <button 
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
+                className="emoji-btn"
+              >
+                😀
+              </button>
+              {showEmojiPicker && (
+                <div className="emoji-picker">
+                  {emojis.map(emoji => (
+                    <button 
+                      key={emoji} 
+                      onClick={() => insertEmoji(emoji)}
+                      className="emoji-option"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
               <input
                 type="text"
                 placeholder="Mesaj yazın..."
@@ -321,6 +462,45 @@ const Room = ({ roomId, user, onLeave }) => {
           </div>
         </div>
       </div>
+
+      {/* Arkadaş Ekleme Modal */}
+      {showFriendModal && (
+        <div className="modal-overlay">
+          <div className="friend-modal">
+            <div className="modal-header">
+              <h3>Arkadaş Ekle</h3>
+              <button 
+                onClick={() => setShowFriendModal(false)} 
+                className="close-btn"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-content">
+              <p>Arkadaşınızın email adresini girin:</p>
+              <input
+                type="email"
+                placeholder="arkadas@email.com"
+                value={friendEmail}
+                onChange={(e) => setFriendEmail(e.target.value)}
+                className="friend-email-input"
+                onKeyPress={(e) => e.key === 'Enter' && addFriend()}
+              />
+              <div className="modal-actions">
+                <button onClick={addFriend} className="add-friend-btn">
+                  Davet Gönder
+                </button>
+                <button 
+                  onClick={() => setShowFriendModal(false)} 
+                  className="cancel-btn"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Gizli audio element kullanıcının kendi sesi için */}
       <audio ref={userVideoRef} muted autoPlay style={{ display: 'none' }} />
