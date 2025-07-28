@@ -10,7 +10,7 @@ const Room = ({ roomId, user, onLeave }) => {
   const [roomUsers, setRoomUsers] = useState([]);
   const [room, setRoom] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [videoUrl, setVideoUrl] = useState('');
+
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [peers, setPeers] = useState({});
   const [stream, setStream] = useState(null);
@@ -281,12 +281,7 @@ const Room = ({ roomId, user, onLeave }) => {
     }
   };
 
-  const loadVideo = () => {
-    if (videoUrl && videoRef.current) {
-      videoRef.current.src = videoUrl;
-      videoRef.current.load();
-    }
-  };
+
 
   const toggleMute = () => {
     if (stream) {
@@ -514,18 +509,7 @@ const Room = ({ roomId, user, onLeave }) => {
 
       <div className="room-content">
         <div className="video-section">
-          <div className="video-controls">
-            <input
-              type="text"
-              placeholder="Video URL'si girin"
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              className="video-url-input"
-            />
-            <button onClick={loadVideo} className="load-video-btn">
-              Video Yükle
-            </button>
-          </div>
+
           
           <div className="video-display-area">
             {isScreenSharing ? (
