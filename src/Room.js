@@ -302,6 +302,11 @@ const Room = ({ roomId, user, onLeave }) => {
       setScreenStream(displayStream);
       setIsScreenSharing(true);
       
+      // Video elementine stream'i ata
+      if (userVideoRef.current) {
+        userVideoRef.current.srcObject = displayStream;
+      }
+      
       // Backend'e ekran paylaşımının başladığını bildir
       if (socket) {
         socket.emit('screen-share-start', { roomId });
@@ -309,13 +314,15 @@ const Room = ({ roomId, user, onLeave }) => {
       
       // Ekran paylaşımını diğer kullanıcılara gönder
       Object.values(peersRef.current).forEach(peer => {
-        displayStream.getTracks().forEach(track => {
-          peer.replaceTrack(
-            peer.streams[0].getVideoTracks()[0],
-            track,
-            peer.streams[0]
-          );
-        });
+        if (peer && peer.streams && peer.streams[0]) {
+          displayStream.getTracks().forEach(track => {
+            peer.replaceTrack(
+              peer.streams[0].getVideoTracks()[0],
+              track,
+              peer.streams[0]
+            );
+          });
+        }
       });
       
       // Ekran paylaşımı bittiğinde
@@ -519,6 +526,7 @@ const Room = ({ roomId, user, onLeave }) => {
                   autoPlay
                   muted
                   className="screen-share-video"
+                  style={{ width: '100%', height: '400px', backgroundColor: '#000' }}
                 />
                 <div className="screen-share-indicator">
                   🖥️ Ekran Paylaşılıyor
