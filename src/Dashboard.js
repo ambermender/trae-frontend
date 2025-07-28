@@ -1,188 +1,92 @@
-import React, { useState, useEffect } from 'react';
-import './Auth.css';
-import './App.css';
+import React, { useState } from 'react';
+import RoomList from './RoomList';
+import Room from './Room';
 
-function Dashboard({ user, token, onLogout }) {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [newUser, setNewUser] = useState({ email: '', password: '' });
-  const [addingUser, setAddingUser] = useState(false);
+const Dashboard = ({ user, onLogout }) => {
+  const [currentRoom, setCurrentRoom] = useState(null);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://trae-backend.onrender.com';
 
-  // API çağrıları için header
-  const getAuthHeaders = () => ({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  });
-
-  // Kullanıcıları getir
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch(`${API_URL}/users`, {
-        headers: getAuthHeaders()
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      } else if (response.status === 401) {
-        // Token geçersiz, çıkış yap
-        onLogout();
-      } else {
-        setError('Kullanıcılar yüklenemedi');
-      }
-    } catch (error) {
-      console.error('Fetch users error:', error);
-      setError('Bağlantı hatası');
-    } finally {
-      setLoading(false);
-    }
+  const handleJoinRoom = (roomId) => {
+    setCurrentRoom(roomId);
   };
 
-  // Yeni kullanıcı ekle
-  const handleAddUser = async (e) => {
-    e.preventDefault();
-    setAddingUser(true);
-    setError('');
-
-    try {
-      const response = await fetch(`${API_URL}/users`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(newUser)
-      });
-
-      if (response.ok) {
-        const addedUser = await response.json();
-        setUsers([...users, addedUser]);
-        setNewUser({ email: '', password: '' });
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Kullanıcı eklenemedi');
-      }
-    } catch (error) {
-      console.error('Add user error:', error);
-      setError('Bağlantı hatası');
-    } finally {
-      setAddingUser(false);
-    }
+  const handleLeaveRoom = () => {
+    setCurrentRoom(null);
   };
 
-  // Kullanıcı sil (sadece admin)
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/users/${userId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-
-      if (response.ok) {
-        setUsers(users.filter(u => u.id !== userId));
-      } else {
-        setError('Kullanıcı silinemedi');
-      }
-    } catch (error) {
-      console.error('Delete user error:', error);
-      setError('Bağlantı hatası');
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const getUserInitials = (email) => {
-    return email.substring(0, 2).toUpperCase();
-  };
+  if (currentRoom) {
+    return (
+      <Room 
+        roomId={currentRoom}
+        user={user}
+        onLeave={handleLeaveRoom}
+      />
+    );
+  }
 
   return (
-    <div className="app">
-      {/* Dashboard Header */}
-      <div className="dashboard-header">
-        <div className="user-info">
-          <div className="user-avatar">
-            {getUserInitials(user.email)}
-          </div>
-          <div className="user-details">
-            <h3>Hoş geldin!</h3>
-            <p>{user.email}</p>
-            <span className={`user-role ${user.role}`}>{user.role}</span>
-          </div>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      position: 'relative'
+    }}>
+      {/* User Info Header */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        background: 'rgba(0, 0, 0, 0.2)',
+        padding: '15px 20px',
+        borderRadius: '15px',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '15px',
+        zIndex: 100
+      }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 'bold',
+          fontSize: '16px'
+        }}>
+          {user.email.charAt(0).toUpperCase()}
         </div>
-        <button onClick={onLogout} className="logout-button">
-          🚪 Çıkış Yap
+        <div>
+          <div style={{ fontWeight: '600', fontSize: '14px' }}>{user.email}</div>
+          <div style={{ fontSize: '12px', opacity: '0.7' }}>{user.role}</div>
+        </div>
+        <button 
+          onClick={onLogout}
+          style={{
+            padding: '8px 15px',
+            background: '#ff4757',
+            color: 'white',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: '500',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseOver={(e) => e.target.style.background = '#ff3742'}
+          onMouseOut={(e) => e.target.style.background = '#ff4757'}
+        >
+          Çıkış
         </button>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
-
-      {/* Yeni Kullanıcı Ekleme Formu */}
-      <div className="user-form">
-        <h2>👤 Yeni Kullanıcı Ekle</h2>
-        <form onSubmit={handleAddUser}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={newUser.email}
-            onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-            required
-            disabled={addingUser}
-          />
-          <input
-            type="password"
-            placeholder="Şifre"
-            value={newUser.password}
-            onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-            required
-            disabled={addingUser}
-          />
-          <button type="submit" disabled={addingUser}>
-            {addingUser ? 'Ekleniyor...' : '➕ Kullanıcı Ekle'}
-          </button>
-        </form>
-      </div>
-
-      {/* Kullanıcı Listesi */}
-      <div className="user-list">
-        <h2>👥 Kullanıcılar ({users.length})</h2>
-        {loading ? (
-          <div className="loading">Yükleniyor...</div>
-        ) : (
-          <div className="users-grid">
-            {users.map(u => (
-              <div key={u.id} className="user-card">
-                <div className="user-avatar">
-                  {getUserInitials(u.email)}
-                </div>
-                <div className="user-info-card">
-                  <h3>{u.email}</h3>
-                  <p>ID: {u.id}</p>
-                  <span className={`user-role ${u.role}`}>{u.role}</span>
-                  <p className="user-date">
-                    📅 {new Date(u.createdAt).toLocaleDateString('tr-TR')}
-                  </p>
-                  {user.role === 'admin' && u.id !== user.id && (
-                    <button 
-                      onClick={() => handleDeleteUser(u.id)}
-                      className="delete-button"
-                    >
-                      🗑️ Sil
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <RoomList user={user} onJoinRoom={handleJoinRoom} />
     </div>
   );
-}
+};
 
 export default Dashboard;
