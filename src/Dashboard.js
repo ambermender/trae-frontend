@@ -9,7 +9,7 @@ function Dashboard({ user, token, onLogout }) {
   const [newUser, setNewUser] = useState({ email: '', password: '' });
   const [addingUser, setAddingUser] = useState(false);
 
-  const API_URL = 'https://trae-backend.onrender.com';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://trae-backend.onrender.com';
 
   // API çağrıları için header
   const getAuthHeaders = () => ({

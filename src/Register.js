@@ -10,7 +10,7 @@ function Register({ onRegister, switchToLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = 'https://trae-backend.onrender.com';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://trae-backend.onrender.com';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

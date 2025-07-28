@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: trae-frontend
+    env: static
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://trae-backend.onrender.com
