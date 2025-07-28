@@ -21,6 +21,22 @@ const Room = ({ roomId, user, onLeave }) => {
   const [friendEmail, setFriendEmail] = useState('');
   const [friends, setFriends] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojis] = useState(['😀', '😂', '❤️', '👍', '👎', '😢', '😮', '😡', '🎉', '🔥', '💯', '👏']);
+  const [showRoomSettings, setShowRoomSettings] = useState(false);
+  const [roomSettings, setRoomSettings] = useState({
+    theme: 'dark',
+    allowScreenShare: true,
+    allowVoiceChat: true,
+    maxUsers: 10,
+    isPrivate: false
+  });
+  const [notifications, setNotifications] = useState([]);
+  const [userPermissions, setUserPermissions] = useState({});
+  const [roomStats, setRoomStats] = useState({
+    totalMessages: 0,
+    activeUsers: 0,
+    sessionDuration: 0
+  });
   
   const videoRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -80,6 +96,78 @@ const Room = ({ roomId, user, onLeave }) => {
       if (peer) {
         peer.signal(data.signal);
       }
+    });
+
+    // Arkadaş davet event'lerini dinle
+    newSocket.on('friend-invitation', (invitation) => {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        user: 'System',
+        message: `🎉 ${invitation.fromEmail} arkadaş olarak ${invitation.toEmail} adresini davet etti!`,
+        timestamp: new Date()
+      }]);
+    });
+
+    newSocket.on('friend-invite-sent', (data) => {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        user: 'System',
+        message: `✅ ${data.message}`,
+        timestamp: new Date()
+      }]);
+      setShowFriendModal(false);
+      setFriendEmail('');
+    });
+
+    // Ekran paylaşım event'lerini dinle
+    newSocket.on('user-screen-share-started', (data) => {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        user: 'System',
+        message: `📺 ${data.email} ekran paylaşımını başlattı`,
+        timestamp: new Date()
+      }]);
+    });
+
+    newSocket.on('user-screen-share-stopped', (data) => {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        user: 'System',
+        message: `📺 ${data.email} ekran paylaşımını durdurdu`,
+        timestamp: new Date()
+      }]);
+    });
+
+    // Listen for room settings updates
+    newSocket.on('room-settings-updated', (data) => {
+      setRoomSettings(data.settings);
+      addNotification(`Room settings updated by ${data.updatedBy}`, 'info');
+    });
+
+    // Listen for user kick events
+    newSocket.on('kicked-from-room', (data) => {
+      addNotification(`You were kicked from the room by ${data.kickedBy}`, 'error');
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 3000);
+    });
+
+    newSocket.on('user-kicked', (data) => {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        user: 'System',
+        message: `${data.kickedUser} was kicked by ${data.kickedBy}`,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    });
+
+    // Listen for user status updates
+    newSocket.on('user-status-updated', (data) => {
+      setRoomUsers(prev => prev.map(user => 
+        user.email === data.email 
+          ? { ...user, status: data.status }
+          : user
+      ));
     });
 
     newSocket.on('error', (error) => {
@@ -219,6 +307,11 @@ const Room = ({ roomId, user, onLeave }) => {
       setScreenStream(displayStream);
       setIsScreenSharing(true);
       
+      // Backend'e ekran paylaşımının başladığını bildir
+      if (socket) {
+        socket.emit('screen-share-start', { roomId });
+      }
+      
       // Ekran paylaşımını diğer kullanıcılara gönder
       Object.values(peersRef.current).forEach(peer => {
         displayStream.getTracks().forEach(track => {
@@ -245,20 +338,26 @@ const Room = ({ roomId, user, onLeave }) => {
     if (screenStream) {
       screenStream.getTracks().forEach(track => track.stop());
       setScreenStream(null);
-      setIsScreenSharing(false);
-      
-      // Kameraya geri dön
-      if (stream) {
-        Object.values(peersRef.current).forEach(peer => {
-          stream.getVideoTracks().forEach(track => {
-            peer.replaceTrack(
-              peer.streams[0].getVideoTracks()[0],
-              track,
-              peer.streams[0]
-            );
-          });
-        });
-      }
+    }
+    setIsScreenSharing(false);
+    
+    // Backend'e ekran paylaşımının durduğunu bildir
+    if (socket) {
+      socket.emit('screen-share-stop', { roomId });
+    }
+    
+    // Kameraya geri dön
+    if (stream) {
+      Object.values(peersRef.current).forEach(peer => {
+        if (peer && stream.getVideoTracks()[0]) {
+          const sender = peer._pc.getSenders().find(s => 
+            s.track && s.track.kind === 'video'
+          );
+          if (sender) {
+            sender.replaceTrack(stream.getVideoTracks()[0]);
+          }
+        }
+      });
     }
   };
 
@@ -276,6 +375,56 @@ const Room = ({ roomId, user, onLeave }) => {
   const insertEmoji = (emoji) => {
     setNewMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
+  };
+
+  // Bildirim sistemi
+  const addNotification = (message, type = 'info') => {
+    const notification = {
+      id: Date.now(),
+      message,
+      type, // 'info', 'success', 'warning', 'error'
+      timestamp: new Date()
+    };
+    setNotifications(prev => [...prev, notification]);
+    
+    // 5 saniye sonra bildirimi kaldır
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    }, 5000);
+  };
+
+  // Oda ayarlarını güncelle
+  const updateRoomSettings = (newSettings) => {
+    setRoomSettings(prev => ({ ...prev, ...newSettings }));
+    if (socket) {
+      socket.emit('update-room-settings', { roomId, settings: newSettings });
+    }
+    addNotification('Oda ayarları güncellendi', 'success');
+  };
+
+  // Kullanıcı yetkilerini kontrol et
+  const hasPermission = (permission) => {
+    return userPermissions[user.email]?.includes(permission) || user.role === 'admin';
+  };
+
+  // Kullanıcıyı odadan at (sadece admin)
+  const kickUser = (userEmail) => {
+    if (hasPermission('kick')) {
+      if (socket) {
+        socket.emit('kick-user', { roomId, userEmail });
+      }
+      addNotification(`${userEmail} odadan atıldı`, 'warning');
+    }
+  };
+
+  // Oda istatistiklerini güncelle
+  const updateRoomStats = () => {
+    setRoomStats(prev => ({
+      ...prev,
+      totalMessages: messages.length,
+      activeUsers: roomUsers.length,
+      sessionDuration: prev.sessionDuration + 1
+    }));
   };
 
   const emojis = ['😀', '😂', '😍', '🤔', '😢', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉'];
@@ -311,21 +460,55 @@ const Room = ({ roomId, user, onLeave }) => {
           </div>
         </div>
         <div className="room-actions">
-          <button onClick={toggleMute} className={`voice-btn ${isMuted ? 'muted' : 'unmuted'}`}>
+          <button 
+            className={`mute-btn ${isMuted ? 'muted' : ''}`}
+            onClick={toggleMute}
+            title={isMuted ? 'Mikrofonu Aç' : 'Mikrofonu Kapat'}
+            disabled={!roomSettings.allowVoiceChat}
+          >
             {isMuted ? '🔇' : '🎤'}
           </button>
+          
           <button 
-            onClick={isScreenSharing ? stopScreenShare : startScreenShare} 
             className={`screen-share-btn ${isScreenSharing ? 'sharing' : ''}`}
+            onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+            title={isScreenSharing ? 'Ekran Paylaşımını Durdur' : 'Ekran Paylaşımını Başlat'}
+            disabled={!roomSettings.allowScreenShare}
           >
-            {isScreenSharing ? '🛑 Paylaşımı Durdur' : '🖥️ Ekran Paylaş'}
+            {isScreenSharing ? '🛑' : '📺'}
           </button>
-          <button onClick={() => setShowFriendModal(true)} className="friend-btn">
-            👥 Arkadaş Ekle
+          
+          <button 
+            className="friend-btn"
+            onClick={() => setShowFriendModal(true)}
+            title="Arkadaş Ekle"
+          >
+            👥
           </button>
-          <button onClick={onLeave} className="leave-btn">
-            Ayrıl
+          
+          <button 
+            className="settings-btn"
+            onClick={() => setShowRoomSettings(true)}
+            title="Oda Ayarları"
+          >
+            ⚙️
           </button>
+          
+          <button className="leave-btn" onClick={onLeave}>
+            Odadan Çık
+          </button>
+        </div>
+        
+        {/* Bildirimler */}
+        <div className="notifications">
+          {notifications.map(notification => (
+            <div key={notification.id} className={`notification ${notification.type}`}>
+              <span>{notification.message}</span>
+              <button onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}>
+                ×
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -396,15 +579,39 @@ const Room = ({ roomId, user, onLeave }) => {
 
         <div className="sidebar">
           <div className="users-section">
-            <h3>Katılımcılar ({roomUsers.length})</h3>
+            <h3>Katılımcılar ({roomUsers.length}/{roomSettings.maxUsers})</h3>
+            <div className="room-stats">
+              <div className="stat-item">
+                <span>💬 Mesajlar: {roomStats.totalMessages}</span>
+              </div>
+              <div className="stat-item">
+                <span>⏱️ Süre: {Math.floor(roomStats.sessionDuration / 60)}dk</span>
+              </div>
+            </div>
             <div className="users-list">
               {roomUsers.map(roomUser => (
                 <div key={roomUser.userId} className="user-item">
                   <div className="user-avatar">
                     {roomUser.email.charAt(0).toUpperCase()}
                   </div>
-                  <span className="user-email">{roomUser.email}</span>
-                  {roomUser.userId === user.id && <span className="you-label">(Sen)</span>}
+                  <div className="user-info">
+                    <span className="user-email">{roomUser.email}</span>
+                    <span className="user-status">
+                      {roomUser.userId === user.id ? '(Sen)' : ''}
+                      {roomUser.role === 'admin' ? ' 👑' : ''}
+                      {roomUser.isMuted ? ' 🔇' : ''}
+                      {roomUser.isScreenSharing ? ' 📺' : ''}
+                    </span>
+                  </div>
+                  {hasPermission('kick') && roomUser.userId !== user.id && (
+                    <button 
+                      className="kick-btn"
+                      onClick={() => kickUser(roomUser.email)}
+                      title="Kullanıcıyı At"
+                    >
+                      ❌
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -497,6 +704,88 @@ const Room = ({ roomId, user, onLeave }) => {
                   İptal
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Oda Ayarları Modal */}
+      {showRoomSettings && (
+        <div className="modal-overlay">
+          <div className="settings-modal">
+            <div className="modal-header">
+              <h3>Oda Ayarları</h3>
+              <button 
+                onClick={() => setShowRoomSettings(false)} 
+                className="close-btn"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-content">
+              <div className="setting-group">
+                <label>Tema:</label>
+                <select 
+                  value={roomSettings.theme} 
+                  onChange={(e) => updateRoomSettings({ theme: e.target.value })}
+                >
+                  <option value="dark">Koyu</option>
+                  <option value="light">Açık</option>
+                  <option value="neon">Neon</option>
+                </select>
+              </div>
+              
+              <div className="setting-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={roomSettings.allowScreenShare}
+                    onChange={(e) => updateRoomSettings({ allowScreenShare: e.target.checked })}
+                  />
+                  Ekran Paylaşımına İzin Ver
+                </label>
+              </div>
+              
+              <div className="setting-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={roomSettings.allowVoiceChat}
+                    onChange={(e) => updateRoomSettings({ allowVoiceChat: e.target.checked })}
+                  />
+                  Sesli Sohbete İzin Ver
+                </label>
+              </div>
+              
+              <div className="setting-group">
+                <label>Maksimum Kullanıcı:</label>
+                <input
+                  type="number"
+                  min="2"
+                  max="50"
+                  value={roomSettings.maxUsers}
+                  onChange={(e) => updateRoomSettings({ maxUsers: parseInt(e.target.value) })}
+                />
+              </div>
+              
+              <div className="setting-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={roomSettings.isPrivate}
+                    onChange={(e) => updateRoomSettings({ isPrivate: e.target.checked })}
+                  />
+                  Özel Oda
+                </label>
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button 
+                className="save-btn"
+                onClick={() => setShowRoomSettings(false)}
+              >
+                Kaydet
+              </button>
             </div>
           </div>
         </div>
