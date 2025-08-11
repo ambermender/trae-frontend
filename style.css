@@ -5,12 +5,13 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #000000;
+    color: #ffffff;
     min-height: 100vh;
-    color: #333;
     margin: 0;
     padding: 0;
+    line-height: 1.6;
 }
 
 /* Login/Register sayfaları için */
@@ -22,14 +23,16 @@ body:has(.container) {
 
 .container {
     background: #ffffff;
+    border: 1px solid #e0e0e0;
     padding: 60px 40px;
     text-align: center;
     min-width: 400px;
     max-width: 450px;
+    border-radius: 0;
 }
 
 h1 {
-    color: #000;
+    color: #000000;
     margin-bottom: 40px;
     font-size: 2.2em;
     font-weight: 300;
@@ -44,110 +47,124 @@ h1 {
 }
 
 .btn {
-    padding: 14px 28px;
-    border: 1px solid #000;
+    padding: 16px 32px;
+    border: 1px solid #000000;
     border-radius: 0;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 400;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     min-width: 140px;
-    background: #fff;
-    color: #000;
+    background: #ffffff;
+    color: #000000;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
+.btn:hover {
+    background: #000000;
+    color: #ffffff;
+}
+
 .btn-primary {
-    background: #000;
-    color: #fff;
-    border-color: #000;
+    background: #000000;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
-    background: #333;
-    border-color: #333;
+    background: #ffffff;
+    color: #000000;
 }
 
 .btn-secondary {
-    background: #fff;
-    color: #000;
-    border-color: #000;
+    background: #ffffff;
+    color: #000000;
 }
 
 .btn-secondary:hover {
-    background: #f5f5f5;
+    background: #000000;
+    color: #ffffff;
 }
 
 .form-group {
-    margin-bottom: 24px;
+    margin-bottom: 32px;
     text-align: left;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    color: #000;
+    margin-bottom: 12px;
+    color: #000000;
     font-weight: 400;
-    font-size: 14px;
-    letter-spacing: 0.3px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-group input {
     width: 100%;
-    padding: 14px 0;
+    padding: 18px 0;
     border: none;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #000000;
     border-radius: 0;
     font-size: 16px;
     background: transparent;
-    transition: border-color 0.2s ease;
+    color: #000000;
+    transition: border-color 0.15s ease;
 }
 
 .form-group input:focus {
     outline: none;
-    border-bottom-color: #000;
+    border-bottom: 2px solid #000000;
 }
 
 .back-btn {
-    background: #fff;
-    color: #666;
-    border-color: #ccc;
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid #ffffff;
     margin-top: 20px;
 }
 
 .back-btn:hover {
-    background: #f9f9f9;
-    color: #333;
-    border-color: #999;
+    background: #ffffff;
+    color: #000000;
 }
 
 .success {
-    color: #000;
-    margin-top: 24px;
+    background: transparent;
+    color: #ffffff;
+    border: none;
+    padding: 20px 0;
+    margin: 20px 0;
+    text-align: center;
+    font-size: 14px;
     font-weight: 400;
-    padding: 12px;
-    background: #f8f8f8;
-    border-left: 3px solid #000;
 }
 
 .error {
-    color: #d32f2f;
-    margin-top: 24px;
+    background: transparent;
+    color: #ffffff;
+    border: none;
+    padding: 20px 0;
+    margin: 20px 0;
+    text-align: center;
+    font-size: 14px;
     font-weight: 400;
-    padding: 12px;
-    background: #fafafa;
-    border-left: 3px solid #d32f2f;
 }
 
 .api-status {
-    margin-bottom: 30px;
-    padding: 12px 16px;
-    background: #f8f8f8;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 20px 0;
+    margin: 30px 0;
+    background: transparent;
+    border: none;
+    border-top: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    font-size: 12px;
+    color: #666666;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     font-weight: 400;
-    color: #666;
-    border-left: 3px solid #ccc;
     transition: all 0.3s ease;
 }
 
@@ -170,117 +187,127 @@ h1 {
 /* Dashboard Sayfası Stilleri */
 .dashboard {
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #000000;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 40px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    padding: 40px 60px;
+    border-bottom: 1px solid #333333;
 }
 
 .logo h1 {
-    color: white;
-    font-size: 2.5em;
-    font-weight: 600;
+    color: #ffffff;
+    font-size: 2em;
+    font-weight: 300;
     margin: 0;
+    letter-spacing: -0.5px;
 }
 
 .logo p {
-    color: rgba(255, 255, 255, 0.8);
+    color: #666666;
     margin: 0;
-    font-size: 0.9em;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .auth-buttons {
     display: flex;
-    gap: 15px;
+    gap: 20px;
 }
 
 .btn-login, .btn-register {
     padding: 12px 24px;
-    border: 2px solid white;
+    border: 1px solid #ffffff;
     background: transparent;
-    color: white;
-    border-radius: 25px;
-    font-weight: 500;
+    color: #ffffff;
+    border-radius: 0;
+    font-weight: 400;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
 }
 
 .btn-login:hover {
-    background: white;
-    color: #667eea;
+    background: #ffffff;
+    color: #000000;
 }
 
 .btn-register {
-    background: white;
-    color: #667eea;
+    background: #ffffff;
+    color: #000000;
 }
 
 .btn-register:hover {
     background: transparent;
-    color: white;
+    color: #ffffff;
 }
 
 .main-content {
-    padding: 60px 40px;
+    padding: 100px 60px;
     text-align: center;
 }
 
 .hero-section {
-    margin-bottom: 80px;
+    margin-bottom: 120px;
 }
 
 .hero-section h2 {
-    color: white;
-    font-size: 3em;
+    color: #ffffff;
+    font-size: 2.5em;
     font-weight: 300;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    letter-spacing: -1px;
 }
 
 .hero-section p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.2em;
-    margin-bottom: 30px;
-    max-width: 600px;
+    color: #666666;
+    font-size: 1em;
+    margin-bottom: 40px;
+    max-width: 500px;
     margin-left: auto;
     margin-right: auto;
+    line-height: 1.8;
 }
 
 .features {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    max-width: 1000px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 40px;
+    max-width: 900px;
     margin: 0 auto;
 }
 
 .feature-card {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 40px 30px;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: transform 0.3s ease;
+    background: transparent;
+    padding: 40px 0;
+    border: none;
+    border-top: 1px solid #333333;
+    transition: border-color 0.15s ease;
 }
 
 .feature-card:hover {
-    transform: translateY(-5px);
+    border-top-color: #ffffff;
 }
 
 .feature-card h3 {
-    color: white;
-    font-size: 1.5em;
-    margin-bottom: 15px;
+    color: #ffffff;
+    font-size: 1.2em;
+    font-weight: 300;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .feature-card p {
-    color: rgba(255, 255, 255, 0.8);
-    line-height: 1.6;
+    color: #666666;
+    line-height: 1.8;
+    font-size: 0.9em;
 }
 
 /* Room Sayfası Stilleri */
@@ -288,42 +315,49 @@ h1 {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: #f5f5f5;
+    background: #000000;
 }
 
 .room-header {
-    background: white;
-    padding: 15px 30px;
+    background: #000000;
+    padding: 20px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-bottom: 1px solid #333333;
 }
 
 .user-info h2 {
-    color: #667eea;
+    color: #ffffff;
     margin: 0;
-    font-size: 1.8em;
+    font-size: 1.5em;
+    font-weight: 300;
+    letter-spacing: -0.5px;
 }
 
 .user-info span {
-    color: #666;
-    font-size: 0.9em;
+    color: #666666;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-logout {
-    background: #ff4757;
-    color: white;
-    border: none;
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid #ffffff;
     padding: 8px 16px;
-    border-radius: 5px;
+    border-radius: 0;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.15s ease;
 }
 
 .btn-logout:hover {
-    background: #ff3742;
+    background: #ffffff;
+    color: #000000;
 }
 
 .room-main {
@@ -333,187 +367,242 @@ h1 {
 }
 
 .sidebar {
-    width: 300px;
-    background: white;
-    border-right: 1px solid #e0e0e0;
+    width: 280px;
+    background: #000000;
+    border-right: 1px solid #333333;
     display: flex;
     flex-direction: column;
 }
 
 .room-list {
-    padding: 20px;
-    border-bottom: 1px solid #e0e0e0;
+    padding: 30px 20px;
+    border-bottom: 1px solid #333333;
 }
 
 .room-list h3 {
-    margin-bottom: 15px;
-    color: #333;
-    font-size: 1.1em;
+    margin-bottom: 20px;
+    color: #ffffff;
+    font-size: 0.9em;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .room-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 15px;
-    margin-bottom: 8px;
-    border-radius: 8px;
+    padding: 15px 0;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #1a1a1a;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: border-color 0.15s ease;
 }
 
 .room-item:hover {
-    background: #f8f9fa;
+    border-bottom-color: #666666;
 }
 
 .room-item.active {
-    background: #667eea;
-    color: white;
+    border-bottom-color: #ffffff;
+}
+
+.room-item.active .room-name {
+    color: #ffffff;
+}
+
+.room-name {
+    color: #666666;
+    font-size: 0.9em;
+    transition: color 0.15s ease;
 }
 
 .room-count {
-    background: rgba(0,0,0,0.1);
-    padding: 2px 8px;
-    border-radius: 12px;
+    background: transparent;
+    color: #666666;
+    padding: 0;
     font-size: 0.8em;
 }
 
 .btn-create-room {
     width: 100%;
-    padding: 12px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 8px;
+    padding: 15px 0;
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 0;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 20px;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.15s ease;
+}
+
+.btn-create-room:hover {
+    background: #ffffff;
+    color: #000000;
 }
 
 .online-users {
     flex: 1;
-    padding: 20px;
+    padding: 30px 20px;
     overflow-y: auto;
 }
 
 .online-users h3 {
-    margin-bottom: 15px;
-    color: #333;
-    font-size: 1.1em;
+    margin-bottom: 20px;
+    color: #ffffff;
+    font-size: 0.9em;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .online-user {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #1a1a1a;
 }
 
 .user-status {
-    font-size: 0.8em;
+    font-size: 0.7em;
+    color: #666666;
 }
 
 .user-name {
-    font-size: 0.9em;
-    color: #666;
+    font-size: 0.8em;
+    color: #666666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .chat-area {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: white;
+    background: #000000;
 }
 
 .chat-header {
-    padding: 20px 30px;
-    border-bottom: 1px solid #e0e0e0;
-    background: #f8f9fa;
+    padding: 30px 40px;
+    border-bottom: 1px solid #333333;
+    background: #000000;
 }
 
 .chat-header h3 {
     margin: 0;
-    color: #333;
+    color: #ffffff;
+    font-weight: 300;
+    font-size: 1.2em;
+    letter-spacing: -0.5px;
 }
 
 .room-info {
-    color: #666;
-    font-size: 0.9em;
+    color: #666666;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .chat-messages {
     flex: 1;
-    padding: 20px;
+    padding: 40px;
     overflow-y: auto;
-    background: #fafafa;
+    background: #000000;
 }
 
 .message {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 20px;
 }
 
 .message.user-message {
-    background: #667eea;
-    color: white;
-    margin-left: 50px;
+    border-bottom-color: #333333;
+    margin-left: 0;
 }
 
 .message-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 0.9em;
+    margin-bottom: 12px;
+    font-size: 0.8em;
 }
 
 .username {
-    font-weight: 600;
+    font-weight: 400;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .timestamp {
-    opacity: 0.7;
+    color: #666666;
+    font-size: 0.7em;
 }
 
 .message-content {
-    line-height: 1.5;
+    line-height: 1.8;
+    color: #cccccc;
+    font-size: 0.9em;
+}
+
+.user-message .message-content {
+    color: #ffffff;
 }
 
 .chat-input {
-    padding: 20px;
-    background: white;
-    border-top: 1px solid #e0e0e0;
+    padding: 30px 40px;
+    background: #000000;
+    border-top: 1px solid #333333;
     display: flex;
-    gap: 15px;
+    gap: 20px;
 }
 
 #message-input {
     flex: 1;
-    padding: 12px 15px;
-    border: 1px solid #ddd;
-    border-radius: 25px;
+    padding: 15px 0;
+    border: none;
+    border-bottom: 1px solid #333333;
+    border-radius: 0;
     outline: none;
     font-size: 0.9em;
+    background: transparent;
+    color: #ffffff;
+    transition: border-color 0.15s ease;
 }
 
 #message-input:focus {
-    border-color: #667eea;
+    border-bottom-color: #ffffff;
+}
+
+#message-input::placeholder {
+    color: #666666;
 }
 
 .btn-send {
     padding: 12px 24px;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 25px;
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 0;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.8em;
+    transition: all 0.15s ease;
 }
 
 .btn-send:hover {
-    background: #5a6fd8;
+    background: #ffffff;
+    color: #000000;
 }
 
 /* Responsive */
@@ -543,5 +632,9 @@ h1 {
     h1 {
         font-size: 1.8em;
         margin-bottom: 32px;
+    }
+    .btn-logout {
+        padding: 8px 16px;
+        font-size: 0.9em;
     }
 }
