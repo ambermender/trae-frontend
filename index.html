@@ -5,10 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kullanıcı Sistemi</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // Backend API Base URL
+        const API_BASE_URL = 'https://trae-backend.onrender.com';
+        
+        // Test API connection
+        async function testAPI() {
+            try {
+                const response = await fetch(API_BASE_URL);
+                const data = await response.text();
+                console.log('API Response:', data);
+                document.getElementById('api-status').textContent = 'API Bağlantısı: ✅ Başarılı';
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('api-status').textContent = 'API Bağlantısı: ❌ Hata';
+            }
+        }
+        
+        // Test API on page load
+        window.onload = function() {
+            testAPI();
+        };
+    </script>
 </head>
 <body>
     <div class="container">
         <h1>Kullanıcı Sistemi</h1>
+        <div id="api-status" class="api-status">API Bağlantısı: 🔄 Kontrol ediliyor...</div>
         <div class="button-container">
             <button onclick="window.location.href='register.html'" class="btn btn-primary">Kayıt Ol</button>
             <button onclick="window.location.href='login.html'" class="btn btn-secondary">Giriş Yap</button>
