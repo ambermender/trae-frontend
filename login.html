@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Giriş Yap</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">E-posta:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Şifre:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-secondary">Giriş Yap</button>
+            <button type="button" onclick="window.location.href='index.html'" class="btn back-btn">Geri Dön</button>
+        </form>
+        <div id="message"></div>
+        <div id="userList" style="margin-top: 30px;"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            const userListDiv = document.getElementById('userList');
+            
+            // Basit frontend validasyonu
+            if (!email || !password) {
+                messageDiv.innerHTML = '<div class="error">Tüm alanları doldurunuz</div>';
+                return;
+            }
+            
+            try {
+                // Modern login endpoint'ini kullan
+                const response = await fetch('http://localhost:3000/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // JWT token ve kullanıcı bilgilerini localStorage'a kaydet
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user_email', data.user.email);
+                    
+                    messageDiv.innerHTML = '<div class="success">Giriş başarılı! Yönlendiriliyorsunuz...</div>';
+                    
+                    // 1 saniye sonra room sayfasına yönlendir
+                    setTimeout(() => {
+                        window.location.href = 'room.html';
+                    }, 1000);
+                } else {
+                    const errorData = await response.json();
+                    messageDiv.innerHTML = '<div class="error">' + (errorData.message || 'Giriş başarısız') + '</div>';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error">Bağlantı hatası: ' + error.message + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>

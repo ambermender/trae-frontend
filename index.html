@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Sistemi</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Backend API Base URL
+        const API_BASE_URL = 'http://localhost:3000';
+        
+        // Test API connection
+        async function testAPI() {
+            try {
+                const response = await fetch(API_BASE_URL);
+                const data = await response.text();
+                console.log('API Response:', data);
+                document.getElementById('api-status').textContent = 'API Bağlantısı: ✅ Başarılı';
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('api-status').textContent = 'API Bağlantısı: ❌ Hata';
+            }
+        }
+        
+        // Test API on page load
+        window.onload = function() {
+            testAPI();
+        };
+    </script>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="logo">
+                <h1>ChilLink</h1>
+                <p>Bağlantıların Merkezi</p>
+            </div>
+            <div class="auth-buttons">
+                <button onclick="window.location.href='login.html'" class="btn btn-login">Giriş Yap</button>
+                <button onclick="window.location.href='register.html'" class="btn btn-register">Kayıt Ol</button>
+            </div>
+        </header>
+        
+        <main class="main-content">
+            <div class="hero-section">
+                <h2>Hoş Geldiniz!</h2>
+                <p>ChilLink ile arkadaşlarınızla bağlantı kurun, sohbet edin ve eğlenceli vakit geçirin.</p>
+                <div id="api-status" class="api-status">API Durumu: 🔄 Kontrol ediliyor...</div>
+            </div>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <h3>💬 Anlık Sohbet</h3>
+                    <p>Arkadaşlarınızla gerçek zamanlı sohbet edin</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🏠 Özel Odalar</h3>
+                    <p>Kendi odanızı oluşturun veya mevcut odalara katılın</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🔒 Güvenli</h3>
+                    <p>Verileriniz güvenli şekilde korunur</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
