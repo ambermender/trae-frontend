@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChilLink - Odalar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="room-container">
+        <header class="room-header">
+            <div class="user-info">
+                <h2>ChilLink</h2>
+                <span id="user-email">Kullanıcı</span>
+            </div>
+            <div class="header-actions">
+                <button onclick="logout()" class="btn btn-logout">Çıkış Yap</button>
+            </div>
+        </header>
+        
+        <main class="room-main">
+            <div class="sidebar">
+                <div class="room-list">
+                    <h3>Odalar</h3>
+                    <div class="room-item active">
+                        <span class="room-name">🏠 Genel Sohbet</span>
+                        <span class="room-count">12</span>
+                    </div>
+                    <div class="room-item">
+                        <span class="room-name">🎮 Oyun Odası</span>
+                        <span class="room-count">5</span>
+                    </div>
+                    <div class="room-item">
+                        <span class="room-name">📚 Ders Çalışma</span>
+                        <span class="room-count">8</span>
+                    </div>
+                    <button class="btn btn-create-room">+ Yeni Oda</button>
+                </div>
+                
+                <div class="online-users">
+                    <h3>Çevrimiçi Kullanıcılar</h3>
+                    <div id="users-list">
+                        <!-- Kullanıcılar buraya yüklenecek -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-area">
+                <div class="chat-header">
+                    <h3>🏠 Genel Sohbet</h3>
+                    <span class="room-info">12 kişi çevrimiçi</span>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message">
+                        <div class="message-header">
+                            <span class="username">Admin</span>
+                            <span class="timestamp">14:30</span>
+                        </div>
+                        <div class="message-content">ChilLink'e hoş geldiniz! 🎉</div>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="message-input" placeholder="Mesajınızı yazın..." maxlength="500">
+                    <button onclick="sendMessage()" class="btn btn-send">Gönder</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sayfa yüklendiğinde kullanıcı bilgilerini kontrol et
+        window.onload = function() {
+            checkAuth();
+            loadUsers();
+        };
+        
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                // Token yoksa login sayfasına yönlendir
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Token varsa kullanıcı bilgilerini göster
+            const userEmail = localStorage.getItem('user_email');
+            if (userEmail) {
+                document.getElementById('user-email').textContent = userEmail;
+            }
+        }
+        
+        async function loadUsers() {
+            try {
+                const response = await fetch('http://localhost:3000/users');
+                if (response.ok) {
+                    const users = await response.json();
+                    const usersList = document.getElementById('users-list');
+                    usersList.innerHTML = '';
+                    
+                    users.forEach(user => {
+                        const userDiv = document.createElement('div');
+                        userDiv.className = 'online-user';
+                        userDiv.innerHTML = `
+                            <span class="user-status">🟢</span>
+                            <span class="user-name">${user.email}</span>
+                        `;
+                        usersList.appendChild(userDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Kullanıcılar yüklenemedi:', error);
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Mesajı chat'e ekle (geçici)
+                const chatMessages = document.getElementById('chat-messages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message user-message';
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="username">Sen</span>
+                        <span class="timestamp">${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'})}</span>
+                    </div>
+                    <div class="message-content">${message}</div>
+                `;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                input.value = '';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user_email');
+            window.location.href = 'index.html';
+        }
+        
+        // Enter tuşu ile mesaj gönderme
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
